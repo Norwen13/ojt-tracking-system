@@ -136,3 +136,74 @@ class SchoolAdminDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Admin account deleted.")
         return super().delete(request, *args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# STUDENT - custom CRUD interface
+# ---------------------------------------------------------------------------
+
+class StudentListView(AdminRequiredMixin, ListView):
+    model = Student
+    template_name = "placement/generic_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "entity_name": "Student",
+            "entity_name_plural": "Students",
+            "headers": ["ID", "First Name", "Last Name", "Email", "Contact #",
+                        "Course", "Department", "Year", "Section", "Required Hrs"],
+            "fields": ["student_id", "first_name", "last_name", "email", "contact_number",
+                       "course", "department", "year_level", "section", "required_hours"],
+            "create_url_name": "student_create",
+            "update_url_name": "student_update",
+            "delete_url_name": "student_delete",
+        })
+        return context
+
+
+class StudentCreateView(AdminRequiredMixin, CreateView):
+    model = Student
+    form_class = StudentForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("student_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Add Student", "list_url_name": "student_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Student created successfully.")
+        return super().form_valid(form)
+
+
+class StudentUpdateView(AdminRequiredMixin, UpdateView):
+    model = Student
+    form_class = StudentForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("student_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Edit Student", "list_url_name": "student_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Student updated successfully.")
+        return super().form_valid(form)
+
+
+class StudentDeleteView(AdminRequiredMixin, DeleteView):
+    model = Student
+    template_name = "placement/generic_confirm_delete.html"
+    success_url = reverse_lazy("student_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"entity_name": "Student", "list_url_name": "student_list"})
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Student deleted.")
+        return super().delete(request, *args, **kwargs)
