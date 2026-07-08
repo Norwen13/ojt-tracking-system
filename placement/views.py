@@ -207,3 +207,73 @@ class StudentDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Student deleted.")
         return super().delete(request, *args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# COMPANY - custom CRUD interface
+# ---------------------------------------------------------------------------
+
+class CompanyListView(AdminRequiredMixin, ListView):
+    model = Company
+    template_name = "placement/generic_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "entity_name": "Company",
+            "entity_name_plural": "Companies",
+            "headers": ["ID", "Company Name", "Contact Person", "Industry Type", "Contact #", "Email"],
+            "fields": ["company_id", "company_name", "contact_person", "industry_type",
+                       "contact_number", "email"],
+            "create_url_name": "company_create",
+            "update_url_name": "company_update",
+            "delete_url_name": "company_delete",
+        })
+        return context
+
+
+class CompanyCreateView(AdminRequiredMixin, CreateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("company_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Add Company", "list_url_name": "company_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Company created successfully.")
+        return super().form_valid(form)
+
+
+class CompanyUpdateView(AdminRequiredMixin, UpdateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("company_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Edit Company", "list_url_name": "company_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Company updated successfully.")
+        return super().form_valid(form)
+
+
+class CompanyDeleteView(AdminRequiredMixin, DeleteView):
+    model = Company
+    template_name = "placement/generic_confirm_delete.html"
+    success_url = reverse_lazy("company_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"entity_name": "Company", "list_url_name": "company_list"})
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Company deleted.")
+        return super().delete(request, *args, **kwargs)

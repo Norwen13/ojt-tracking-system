@@ -18,4 +18,10 @@ urlpatterns = [
     path("students/add/", views.StudentCreateView.as_view(), name="student_create"),
     path("students/<int:pk>/edit/", views.StudentUpdateView.as_view(), name="student_update"),
     path("students/<int:pk>/delete/", views.StudentDeleteView.as_view(), name="student_delete"),
+
+    # Companies
+    path("companies/", views.CompanyListView.as_view(), name="company_list"),
+    path("companies/add/", views.CompanyCreateView.as_view(), name="company_create"),
+    path("companies/<int:pk>/edit/", views.CompanyUpdateView.as_view(), name="company_update"),
+    path("companies/<int:pk>/delete/", views.CompanyDeleteView.as_view(), name="company_delete"),
 ]
