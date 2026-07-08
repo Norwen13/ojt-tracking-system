@@ -20,7 +20,7 @@ class AdminRequiredMixin:
     @classmethod
     def as_view(cls, **kwargs):
         view = super().as_view(**kwargs)
-        return method_decorator(admin_login_required)(view)
+        return admin_login_required(view)
 
 
 # ---------------------------------------------------------------------------
