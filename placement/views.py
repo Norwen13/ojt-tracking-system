@@ -67,3 +67,72 @@ class DashboardView(View):
             "admins": SchoolAdmin.objects.count(),
         }
         return render(request, "placement/dashboard.html", {"counts": counts})
+
+
+# ---------------------------------------------------------------------------
+# SCHOOL ADMIN - custom CRUD interface (account management)
+# ---------------------------------------------------------------------------
+
+class SchoolAdminListView(AdminRequiredMixin, ListView):
+    model = SchoolAdmin
+    template_name = "placement/generic_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "entity_name": "Admin Account",
+            "entity_name_plural": "School Admin Accounts",
+            "headers": ["Admin ID"],
+            "fields": ["admin_id"],
+            "create_url_name": "schooladmin_create",
+            "update_url_name": "schooladmin_update",
+            "delete_url_name": "schooladmin_delete",
+        })
+        return context
+
+
+class SchoolAdminCreateView(AdminRequiredMixin, CreateView):
+    model = SchoolAdmin
+    form_class = SchoolAdminForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("schooladmin_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Add School Admin", "list_url_name": "schooladmin_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Admin account created.")
+        return super().form_valid(form)
+
+
+class SchoolAdminUpdateView(AdminRequiredMixin, UpdateView):
+    model = SchoolAdmin
+    form_class = SchoolAdminForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("schooladmin_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Edit School Admin", "list_url_name": "schooladmin_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Admin account updated.")
+        return super().form_valid(form)
+
+
+class SchoolAdminDeleteView(AdminRequiredMixin, DeleteView):
+    model = SchoolAdmin
+    template_name = "placement/generic_confirm_delete.html"
+    success_url = reverse_lazy("schooladmin_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"entity_name": "Admin Account", "list_url_name": "schooladmin_list"})
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Admin account deleted.")
+        return super().delete(request, *args, **kwargs)
