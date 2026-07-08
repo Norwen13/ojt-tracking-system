@@ -60,6 +60,37 @@ class Company(models.Model):
         return check_password(raw_password, self.password)
 
 
+class Coordinator(models.Model):
+    """
+    COORDINATOR entity from the ERD.
+    Fields: coordinator_id (PK), first_name, last_name, password, email,
+    department.
+    Relationship: one Coordinator "supervises" many OJT_PLACEMENT records.
+    A School Admin "handles" (manages) Coordinator accounts.
+    """
+
+    coordinator_id = models.AutoField(primary_key=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    password = models.CharField(max_length=128)
+    email = models.EmailField(max_length=150, unique=True)
+    department = models.CharField(max_length=150)
+
+    class Meta:
+        verbose_name = "Coordinator"
+        verbose_name_plural = "Coordinators"
+        ordering = ["last_name", "first_name"]
+
+    def __str__(self):
+        return f"{self.last_name}, {self.first_name} ({self.coordinator_id})"
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+
 class Student(models.Model):
     """
     STUDENT entity from the ERD.
