@@ -277,3 +277,72 @@ class CompanyDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Company deleted.")
         return super().delete(request, *args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# COORDINATOR - custom CRUD interface
+# ---------------------------------------------------------------------------
+
+class CoordinatorListView(AdminRequiredMixin, ListView):
+    model = Coordinator
+    template_name = "placement/generic_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "entity_name": "Coordinator",
+            "entity_name_plural": "Coordinators",
+            "headers": ["ID", "First Name", "Last Name", "Email", "Department"],
+            "fields": ["coordinator_id", "first_name", "last_name", "email", "department"],
+            "create_url_name": "coordinator_create",
+            "update_url_name": "coordinator_update",
+            "delete_url_name": "coordinator_delete",
+        })
+        return context
+
+
+class CoordinatorCreateView(AdminRequiredMixin, CreateView):
+    model = Coordinator
+    form_class = CoordinatorForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("coordinator_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Add Coordinator", "list_url_name": "coordinator_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Coordinator created successfully.")
+        return super().form_valid(form)
+
+
+class CoordinatorUpdateView(AdminRequiredMixin, UpdateView):
+    model = Coordinator
+    form_class = CoordinatorForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("coordinator_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Edit Coordinator", "list_url_name": "coordinator_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Coordinator updated successfully.")
+        return super().form_valid(form)
+
+
+class CoordinatorDeleteView(AdminRequiredMixin, DeleteView):
+    model = Coordinator
+    template_name = "placement/generic_confirm_delete.html"
+    success_url = reverse_lazy("coordinator_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"entity_name": "Coordinator", "list_url_name": "coordinator_list"})
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Coordinator deleted.")
+        return super().delete(request, *args, **kwargs)

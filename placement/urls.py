@@ -24,4 +24,10 @@ urlpatterns = [
     path("companies/add/", views.CompanyCreateView.as_view(), name="company_create"),
     path("companies/<int:pk>/edit/", views.CompanyUpdateView.as_view(), name="company_update"),
     path("companies/<int:pk>/delete/", views.CompanyDeleteView.as_view(), name="company_delete"),
+
+    # Coordinators
+    path("coordinators/", views.CoordinatorListView.as_view(), name="coordinator_list"),
+    path("coordinators/add/", views.CoordinatorCreateView.as_view(), name="coordinator_create"),
+    path("coordinators/<int:pk>/edit/", views.CoordinatorUpdateView.as_view(), name="coordinator_update"),
+    path("coordinators/<int:pk>/delete/", views.CoordinatorDeleteView.as_view(), name="coordinator_delete"),
 ]
