@@ -168,3 +168,38 @@ class OJTPlacement(models.Model):
 
     def __str__(self):
         return f"Placement #{self.placement_id}: {self.student} @ {self.company}"
+
+
+class Attendance(models.Model):
+    """
+    ATTENDANCE entity from the ERD.
+    Fields: attendance_id (PK), placement_id (FK), log_date, time_in,
+    time_out, rendered_hours, status, remarks.
+    Relationship: one OJT_PLACEMENT "generates" many ATTENDANCE records.
+    """
+
+    STATUS_CHOICES = [
+        ("Present", "Present"),
+        ("Absent", "Absent"),
+        ("Late", "Late"),
+        ("Excused", "Excused"),
+    ]
+
+    attendance_id = models.AutoField(primary_key=True)
+    placement = models.ForeignKey(
+        OJTPlacement, on_delete=models.CASCADE, related_name="attendance_logs", db_column="placement_id"
+    )
+    log_date = models.DateField()
+    time_in = models.TimeField(null=True, blank=True)
+    time_out = models.TimeField(null=True, blank=True)
+    rendered_hours = models.FloatField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Present")
+    remarks = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Attendance"
+        verbose_name_plural = "Attendance Records"
+        ordering = ["-log_date"]
+
+    def __str__(self):
+        return f"Attendance #{self.attendance_id} - {self.log_date}"
