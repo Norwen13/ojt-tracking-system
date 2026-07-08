@@ -346,3 +346,77 @@ class CoordinatorDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Coordinator deleted.")
         return super().delete(request, *args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# OJT_PLACEMENT - custom CRUD interface (links Student, Company, Coordinator)
+# ---------------------------------------------------------------------------
+
+class OJTPlacementListView(AdminRequiredMixin, ListView):
+    model = OJTPlacement
+    template_name = "placement/generic_list.html"
+
+    def get_queryset(self):
+        return OJTPlacement.objects.select_related("student", "company", "coordinator")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "entity_name": "OJT Placement",
+            "entity_name_plural": "OJT Placements",
+            "headers": ["ID", "Student", "Company", "Coordinator", "Start Date",
+                        "End Date", "Required Hrs", "Status"],
+            "fields": ["placement_id", "student", "company", "coordinator",
+                       "start_date", "end_date", "required_hours", "status"],
+            "create_url_name": "placement_create",
+            "update_url_name": "placement_update",
+            "delete_url_name": "placement_delete",
+        })
+        return context
+
+
+class OJTPlacementCreateView(AdminRequiredMixin, CreateView):
+    model = OJTPlacement
+    form_class = OJTPlacementForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("placement_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Add OJT Placement", "list_url_name": "placement_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "OJT Placement created successfully.")
+        return super().form_valid(form)
+
+
+class OJTPlacementUpdateView(AdminRequiredMixin, UpdateView):
+    model = OJTPlacement
+    form_class = OJTPlacementForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("placement_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Edit OJT Placement", "list_url_name": "placement_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "OJT Placement updated successfully.")
+        return super().form_valid(form)
+
+
+class OJTPlacementDeleteView(AdminRequiredMixin, DeleteView):
+    model = OJTPlacement
+    template_name = "placement/generic_confirm_delete.html"
+    success_url = reverse_lazy("placement_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"entity_name": "OJT Placement", "list_url_name": "placement_list"})
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "OJT Placement deleted.")
+        return super().delete(request, *args, **kwargs)
