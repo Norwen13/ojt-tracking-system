@@ -124,3 +124,47 @@ class Student(models.Model):
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
+
+
+class OJTPlacement(models.Model):
+    """
+    OJT_PLACEMENT entity from the ERD.
+    Fields: placement_id (PK), student_id (FK), company_id (FK),
+    coordinator_id (FK), start_date, end_date, required_hours, status.
+
+    Relationships (matches the ERD crow's-foot notation):
+      - Student (1) --- (0..many) OJT_PLACEMENT
+      - Company (1) --- (0..many) OJT_PLACEMENT   ("host")
+      - Coordinator (1) --- (0..many) OJT_PLACEMENT  ("supervises")
+      - OJT_PLACEMENT (1) --- (0..many) ATTENDANCE  ("generates")
+    """
+
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Ongoing", "Ongoing"),
+        ("Completed", "Completed"),
+        ("Terminated", "Terminated"),
+    ]
+
+    placement_id = models.AutoField(primary_key=True)
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name="placements", db_column="student_id"
+    )
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE, related_name="placements", db_column="company_id"
+    )
+    coordinator = models.ForeignKey(
+        Coordinator, on_delete=models.CASCADE, related_name="placements", db_column="coordinator_id"
+    )
+    start_date = models.DateField()
+    end_date = models.DateField()
+    required_hours = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+
+    class Meta:
+        verbose_name = "OJT Placement"
+        verbose_name_plural = "OJT Placements"
+        ordering = ["-start_date"]
+
+    def __str__(self):
+        return f"Placement #{self.placement_id}: {self.student} @ {self.company}"
