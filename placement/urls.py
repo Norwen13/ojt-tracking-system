@@ -36,4 +36,10 @@ urlpatterns = [
     path("placements/add/", views.OJTPlacementCreateView.as_view(), name="placement_create"),
     path("placements/<int:pk>/edit/", views.OJTPlacementUpdateView.as_view(), name="placement_update"),
     path("placements/<int:pk>/delete/", views.OJTPlacementDeleteView.as_view(), name="placement_delete"),
+
+    # Attendance
+    path("attendance/", views.AttendanceListView.as_view(), name="attendance_list"),
+    path("attendance/add/", views.AttendanceCreateView.as_view(), name="attendance_create"),
+    path("attendance/<int:pk>/edit/", views.AttendanceUpdateView.as_view(), name="attendance_update"),
+    path("attendance/<int:pk>/delete/", views.AttendanceDeleteView.as_view(), name="attendance_delete"),
 ]

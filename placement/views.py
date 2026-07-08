@@ -420,3 +420,77 @@ class OJTPlacementDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "OJT Placement deleted.")
         return super().delete(request, *args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# ATTENDANCE - custom CRUD interface (linked to OJT_PLACEMENT)
+# ---------------------------------------------------------------------------
+
+class AttendanceListView(AdminRequiredMixin, ListView):
+    model = Attendance
+    template_name = "placement/generic_list.html"
+
+    def get_queryset(self):
+        return Attendance.objects.select_related("placement", "placement__student")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "entity_name": "Attendance Record",
+            "entity_name_plural": "Attendance Records",
+            "headers": ["ID", "Placement", "Date", "Time In", "Time Out",
+                        "Rendered Hrs", "Status", "Remarks"],
+            "fields": ["attendance_id", "placement", "log_date", "time_in", "time_out",
+                       "rendered_hours", "status", "remarks"],
+            "create_url_name": "attendance_create",
+            "update_url_name": "attendance_update",
+            "delete_url_name": "attendance_delete",
+        })
+        return context
+
+
+class AttendanceCreateView(AdminRequiredMixin, CreateView):
+    model = Attendance
+    form_class = AttendanceForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("attendance_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Add Attendance Record", "list_url_name": "attendance_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Attendance record created successfully.")
+        return super().form_valid(form)
+
+
+class AttendanceUpdateView(AdminRequiredMixin, UpdateView):
+    model = Attendance
+    form_class = AttendanceForm
+    template_name = "placement/generic_form.html"
+    success_url = reverse_lazy("attendance_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"form_title": "Edit Attendance Record", "list_url_name": "attendance_list"})
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Attendance record updated successfully.")
+        return super().form_valid(form)
+
+
+class AttendanceDeleteView(AdminRequiredMixin, DeleteView):
+    model = Attendance
+    template_name = "placement/generic_confirm_delete.html"
+    success_url = reverse_lazy("attendance_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"entity_name": "Attendance Record", "list_url_name": "attendance_list"})
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Attendance record deleted.")
+        return super().delete(request, *args, **kwargs)
