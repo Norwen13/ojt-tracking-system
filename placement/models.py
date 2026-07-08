@@ -28,6 +28,38 @@ class SchoolAdmin(models.Model):
         return check_password(raw_password, self.password)
 
 
+class Company(models.Model):
+    """
+    COMPANY entity from the ERD.
+    Fields: company_id (PK), company_name, contact_person, password,
+    industry_type, contact_number, email.
+    Relationship: one Company can "host" many OJT_PLACEMENT records.
+    A School Admin "handles" (manages) Company accounts.
+    """
+
+    company_id = models.AutoField(primary_key=True)
+    company_name = models.CharField(max_length=200)
+    contact_person = models.CharField(max_length=150)
+    password = models.CharField(max_length=128)
+    industry_type = models.CharField(max_length=150)
+    contact_number = models.CharField(max_length=20)
+    email = models.EmailField(max_length=150, unique=True)
+
+    class Meta:
+        verbose_name = "Company"
+        verbose_name_plural = "Companies"
+        ordering = ["company_name"]
+
+    def __str__(self):
+        return f"{self.company_name} ({self.company_id})"
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+
 class Student(models.Model):
     """
     STUDENT entity from the ERD.
