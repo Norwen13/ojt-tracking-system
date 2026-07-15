@@ -147,3 +147,33 @@ class AttendanceForm(forms.ModelForm):
             "status": forms.Select(attrs={"class": "form-select"}),
             "remarks": forms.TextInput(attrs={"class": "form-control"}),
         }
+
+    def clean(self):
+        """
+        Supporting-feature validation for Attendance, integrated with the
+        core OJT Placement feature via the `placement` foreign key:
+        1. time_out must be later than time_in when both are provided.
+        2. A placement cannot have two attendance records on the same
+           log_date (duplicate-record prevention).
+        """
+        cleaned_data = super().clean()
+        placement = cleaned_data.get("placement")
+        log_date = cleaned_data.get("log_date")
+        time_in = cleaned_data.get("time_in")
+        time_out = cleaned_data.get("time_out")
+
+        if time_in and time_out and time_out <= time_in:
+            self.add_error("time_out", "Time out must be later than time in.")
+
+        if placement and log_date:
+            duplicates = Attendance.objects.filter(placement=placement, log_date=log_date)
+            if self.instance.pk:
+                duplicates = duplicates.exclude(pk=self.instance.pk)
+            if duplicates.exists():
+                raise forms.ValidationError(
+                    f"Duplicate record: an attendance entry for {placement} on "
+                    f"{log_date} already exists. Edit the existing record instead "
+                    f"of creating a new one."
+                )
+
+        return cleaned_data
