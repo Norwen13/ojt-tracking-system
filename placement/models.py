@@ -169,6 +169,21 @@ class OJTPlacement(models.Model):
     def __str__(self):
         return f"Placement #{self.placement_id}: {self.student} @ {self.company}"
 
+    @property
+    def total_rendered_hours(self):
+        total = self.attendance_logs.aggregate(total=models.Sum("rendered_hours"))["total"]
+        return round(total or 0, 2)
+
+    @property
+    def hours_remaining(self):
+        return max(round(self.required_hours - self.total_rendered_hours, 2), 0)
+
+    @property
+    def progress_percent(self):
+        if not self.required_hours:
+            return 0
+        return min(round((self.total_rendered_hours / self.required_hours) * 100), 100)
+
 
 class Attendance(models.Model):
     """
