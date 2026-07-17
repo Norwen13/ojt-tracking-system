@@ -10,7 +10,7 @@ class SchoolAdmin(models.Model):
     ("Handles" relationships on the ERD) through the custom interface.
     """
 
-    admin_id = models.AutoField(primary_key=True)
+    admin_id = models.CharField(max_length=50, primary_key=True)
     password = models.CharField(max_length=128)
 
     class Meta:
@@ -218,3 +218,13 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"Attendance #{self.attendance_id} - {self.log_date}"
+
+def _student_active_placement(self):
+    """Returns the student's current Ongoing placement, or their most recent one."""
+    return (
+        self.placements.filter(status="Ongoing").order_by("-start_date").first()
+        or self.placements.order_by("-start_date").first()
+    )
+
+
+Student.active_placement = property(_student_active_placement)

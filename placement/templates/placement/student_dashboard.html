@@ -1,0 +1,81 @@
+﻿{% extends "placement/base.html" %}
+{% block title %}My Dashboard - OJT Placement Tracking System{% endblock %}
+{% block content %}
+<h3 class="mb-4">Welcome, {{ student.first_name }} {{ student.last_name }}</h3>
+
+{% if placement %}
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">My OJT Placement</h5>
+    <p class="mb-1"><strong>Company:</strong> {{ placement.company.company_name }}</p>
+    <p class="mb-1"><strong>Coordinator:</strong> {{ placement.coordinator }}</p>
+    <p class="mb-1"><strong>Start Date:</strong> {{ placement.start_date }}</p>
+    <p class="mb-1"><strong>End Date:</strong> {{ placement.end_date }}</p>
+    <p class="mb-1"><strong>Status:</strong> {{ placement.status }}</p>
+    <p class="mb-1"><strong>Required Hours:</strong> {{ placement.required_hours }}</p>
+    <p class="mb-1"><strong>Hours Rendered:</strong> {{ placement.total_rendered_hours }}</p>
+    <p class="mb-3"><strong>Hours Remaining:</strong> {{ placement.hours_remaining }}</p>
+    <div class="progress" style="height: 20px;">
+      <div class="progress-bar bg-success" role="progressbar" style="width: {{ placement.progress_percent }}%;">
+        {{ placement.progress_percent }}%
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Today's Attendance</h5>
+    {% if today_log and today_log.time_in and today_log.time_out %}
+      <p class="text-success mb-0">Completed for today. Time In: {{ today_log.time_in }}, Time Out: {{ today_log.time_out }}, Rendered: {{ today_log.rendered_hours }} hrs.</p>
+    {% elif today_log and today_log.time_in %}
+      <p class="mb-3">Clocked in at {{ today_log.time_in }}. Don't forget to clock out at the end of the day.</p>
+      <form method="post" action="{% url 'student_clock_out' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-dark">Clock Out</button>
+      </form>
+    {% else %}
+      <p class="mb-3">You haven't clocked in yet today.</p>
+      <form method="post" action="{% url 'student_clock_in' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-dark">Clock In</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning">You don't have an active OJT placement yet. Please contact your coordinator or school admin.</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">My Attendance History</h5>
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time In</th>
+          <th>Time Out</th>
+          <th>Rendered Hrs</th>
+          <th>Status</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in attendance_history %}
+          <tr>
+            <td>{{ log.log_date }}</td>
+            <td>{{ log.time_in|default:"—" }}</td>
+            <td>{{ log.time_out|default:"—" }}</td>
+            <td>{{ log.rendered_hours }}</td>
+            <td>{{ log.status }}</td>
+            <td>{{ log.remarks }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-3">No attendance records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

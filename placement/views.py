@@ -5,6 +5,9 @@ from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from .decorators import student_login_required
+from .forms import StudentLoginForm
+
 
 from .decorators import admin_login_required
 from .forms import (
@@ -443,8 +446,6 @@ class AttendanceListView(AdminRequiredMixin, ListView):
                         "Rendered Hrs", "Status", "Remarks"],
             "fields": ["attendance_id", "placement", "log_date", "time_in", "time_out",
                        "rendered_hours", "status", "remarks"],
-            "create_url_name": "attendance_create",
-            "update_url_name": "attendance_update",
             "delete_url_name": "attendance_delete",
         })
         return context
@@ -495,3 +496,144 @@ class AttendanceDeleteView(AdminRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Attendance record deleted.")
         return super().delete(request, *args, **kwargs)
+
+# ---------------------------------------------------------------------------
+# STUDENT PORTAL - self-service login, dashboard, and attendance clock in/out
+# ---------------------------------------------------------------------------
+
+def student_login_view(request):
+    if request.session.get(settings.STUDENT_SESSION_KEY):
+        return redirect("student_dashboard")
+
+    initial = {}
+    prefill_id = request.GET.get("student_id")
+    if prefill_id:
+        initial["student_id"] = prefill_id
+
+    form = StudentLoginForm(request.POST or None, initial=initial)
+    if request.method == "POST" and form.is_valid():
+        student_id = form.cleaned_data["student_id"]
+        password = form.cleaned_data["password"]
+        try:
+            student = Student.objects.get(pk=student_id)
+        except Student.DoesNotExist:
+            student = None
+
+        if student and student.check_password(password):
+            request.session[settings.STUDENT_SESSION_KEY] = student.student_id
+            messages.success(request, "Welcome back!")
+            return redirect("student_dashboard")
+        messages.error(request, "Invalid student ID or password.")
+
+    return render(request, "placement/student_login.html", {"form": form})
+
+
+def student_logout_view(request):
+    request.session.flush()
+    messages.info(request, "You have been logged out.")
+    return redirect("student_login")
+
+
+@student_login_required
+def student_dashboard_view(request):
+    from django.utils import timezone
+
+    student = Student.objects.get(pk=request.session[settings.STUDENT_SESSION_KEY])
+    placement = student.active_placement
+    today = timezone.localdate()
+    today_log = None
+    attendance_history = []
+    if placement:
+        today_log = Attendance.objects.filter(placement=placement, log_date=today).first()
+        attendance_history = Attendance.objects.filter(placement=placement).order_by("-log_date")
+
+    context = {
+        "student": student,
+        "placement": placement,
+        "today_log": today_log,
+        "attendance_history": attendance_history,
+    }
+    return render(request, "placement/student_dashboard.html", context)
+
+
+@student_login_required
+def student_clock_in_view(request):
+    from django.utils import timezone
+
+    student = Student.objects.get(pk=request.session[settings.STUDENT_SESSION_KEY])
+    placement = student.active_placement
+
+    if not placement:
+        messages.error(request, "You don't have an active OJT placement yet. Contact your coordinator.")
+        return redirect("student_dashboard")
+
+    today = timezone.localdate()
+    log, created = Attendance.objects.get_or_create(
+        placement=placement, log_date=today,
+        defaults={"time_in": timezone.localtime().time(), "status": "Present"},
+    )
+    if not created and log.time_in:
+        messages.warning(request, "You've already clocked in today.")
+    elif not created:
+        log.time_in = timezone.localtime().time()
+        log.status = "Present"
+        log.save()
+        messages.success(request, "Clocked in successfully.")
+    else:
+        messages.success(request, "Clocked in successfully.")
+
+    return redirect("student_dashboard")
+
+
+@student_login_required
+def student_clock_out_view(request):
+    from django.utils import timezone
+    from datetime import datetime
+
+    student = Student.objects.get(pk=request.session[settings.STUDENT_SESSION_KEY])
+    placement = student.active_placement
+
+    if not placement:
+        messages.error(request, "You don't have an active OJT placement yet. Contact your coordinator.")
+        return redirect("student_dashboard")
+
+    today = timezone.localdate()
+    try:
+        log = Attendance.objects.get(placement=placement, log_date=today)
+    except Attendance.DoesNotExist:
+        messages.error(request, "You haven't clocked in yet today.")
+        return redirect("student_dashboard")
+
+    if not log.time_in:
+        messages.error(request, "You haven't clocked in yet today.")
+        return redirect("student_dashboard")
+
+    if log.time_out:
+        messages.warning(request, "You've already clocked out today.")
+        return redirect("student_dashboard")
+
+    now_time = timezone.localtime().time()
+    log.time_out = now_time
+    time_in_dt = datetime.combine(today, log.time_in)
+    time_out_dt = datetime.combine(today, now_time)
+    hours = round((time_out_dt - time_in_dt).total_seconds() / 3600, 2)
+    log.rendered_hours = max(hours, 0)
+    log.save()
+    messages.success(request, f"Clocked out successfully. Rendered hours: {log.rendered_hours}")
+
+    return redirect("student_dashboard")
+
+from .forms import StudentRegisterForm
+
+
+def student_register_view(request):
+    if request.session.get(settings.STUDENT_SESSION_KEY):
+        return redirect("student_dashboard")
+
+    form = StudentRegisterForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        student = form.save()
+        messages.success(request, f"Account created! Your Student ID is {student.student_id}. Please log in.")
+        return redirect(f"/student/login/?student_id={student.student_id}")
+
+    return render(request, "placement/student_register.html", {"form": form})

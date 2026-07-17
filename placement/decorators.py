@@ -20,3 +20,19 @@ def admin_login_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped
+
+def student_login_required(view_func):
+    """
+    Custom session-based auth guard for the Student Portal.
+    Requires a Student to be logged in (see views.student_login_view) before
+    accessing any student-facing page.
+    """
+
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.session.get(settings.STUDENT_SESSION_KEY):
+            messages.warning(request, "Please log in to continue.")
+            return redirect("student_login")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped

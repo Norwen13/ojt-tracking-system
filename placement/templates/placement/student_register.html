@@ -1,0 +1,76 @@
+﻿{% extends "placement/base.html" %}
+{% block title %}Register - OJT Placement Tracking System{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card mt-5">
+      <div class="card-body p-4">
+        <h3 class="mb-1">OJT Placement Tracking System</h3>
+        <p class="text-muted mb-4">Student Registration</p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Last Name</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            {{ form.email }}
+            {{ form.email.errors }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contact Number</label>
+            {{ form.contact_number }}
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Course</label>
+              {{ form.course }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Department</label>
+              {{ form.department }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Year Level</label>
+              {{ form.year_level }}
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Section</label>
+              {{ form.section }}
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Required Hours</label>
+              {{ form.required_hours }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Password</label>
+              {{ form.password }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Confirm Password</label>
+              {{ form.confirm_password }}
+              {{ form.confirm_password.errors }}
+            </div>
+          </div>
+          {% if form.non_field_errors %}
+            <div class="text-danger mb-3">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <button type="submit" class="btn btn-dark w-100">Register</button>
+        </form>
+        <p class="text-muted mt-3 mb-0">Already have an account? <a href="{% url 'student_login' %}">Log in here</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

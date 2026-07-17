@@ -116,3 +116,5 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+STUDENT_SESSION_KEY = "student_id"

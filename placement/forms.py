@@ -7,7 +7,7 @@ PASSWORD_WIDGET = forms.PasswordInput(attrs={"class": "form-control"}, render_va
 
 
 class LoginForm(forms.Form):
-    admin_id = forms.IntegerField(widget=forms.NumberInput(attrs={"class": "form-control", "autofocus": True}))
+    admin_id = forms.CharField(max_length=50, widget=forms.TextInput(attrs={"class": "form-control", "autofocus": True}))
     password = forms.CharField(widget=PASSWORD_WIDGET)
 
 
@@ -177,3 +177,44 @@ class AttendanceForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
+class StudentLoginForm(forms.Form):
+    student_id = forms.IntegerField(widget=forms.NumberInput(attrs={"class": "form-control", "autofocus": True}))
+    password = forms.CharField(widget=PASSWORD_WIDGET)
+
+class StudentRegisterForm(forms.ModelForm):
+    password = forms.CharField(widget=PASSWORD_WIDGET, label="Password")
+    confirm_password = forms.CharField(widget=PASSWORD_WIDGET, label="Confirm Password")
+
+    class Meta:
+        model = Student
+        fields = [
+            "first_name", "last_name", "email", "contact_number", "password",
+            "course", "department", "year_level", "section", "required_hours",
+        ]
+        widgets = {
+            "first_name": TEXT_WIDGET,
+            "last_name": TEXT_WIDGET,
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "contact_number": TEXT_WIDGET,
+            "course": TEXT_WIDGET,
+            "department": TEXT_WIDGET,
+            "year_level": forms.NumberInput(attrs={"class": "form-control"}),
+            "section": TEXT_WIDGET,
+            "required_hours": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if password and confirm_password and password != confirm_password:
+            self.add_error("confirm_password", "Passwords do not match.")
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.set_password(self.cleaned_data["password"])
+        if commit:
+            instance.save()
+        return instance

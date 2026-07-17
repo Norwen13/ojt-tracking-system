@@ -10,8 +10,8 @@ urlpatterns = [
     # School Admin accounts
     path("admins/", views.SchoolAdminListView.as_view(), name="schooladmin_list"),
     path("admins/add/", views.SchoolAdminCreateView.as_view(), name="schooladmin_create"),
-    path("admins/<int:pk>/edit/", views.SchoolAdminUpdateView.as_view(), name="schooladmin_update"),
-    path("admins/<int:pk>/delete/", views.SchoolAdminDeleteView.as_view(), name="schooladmin_delete"),
+    path("admins/<str:pk>/edit/", views.SchoolAdminUpdateView.as_view(), name="schooladmin_update"),
+    path("admins/<str:pk>/delete/", views.SchoolAdminDeleteView.as_view(), name="schooladmin_delete"),
 
     # Students
     path("students/", views.StudentListView.as_view(), name="student_list"),
@@ -36,10 +36,20 @@ urlpatterns = [
     path("placements/add/", views.OJTPlacementCreateView.as_view(), name="placement_create"),
     path("placements/<int:pk>/edit/", views.OJTPlacementUpdateView.as_view(), name="placement_update"),
     path("placements/<int:pk>/delete/", views.OJTPlacementDeleteView.as_view(), name="placement_delete"),
-
     # Attendance
     path("attendance/", views.AttendanceListView.as_view(), name="attendance_list"),
-    path("attendance/add/", views.AttendanceCreateView.as_view(), name="attendance_create"),
-    path("attendance/<int:pk>/edit/", views.AttendanceUpdateView.as_view(), name="attendance_update"),
     path("attendance/<int:pk>/delete/", views.AttendanceDeleteView.as_view(), name="attendance_delete"),
+]
+
+urlpatterns += [
+    # Student Portal (self-service)
+    path("student/login/", views.student_login_view, name="student_login"),
+    path("student/logout/", views.student_logout_view, name="student_logout"),
+    path("student/dashboard/", views.student_dashboard_view, name="student_dashboard"),
+    path("student/clock-in/", views.student_clock_in_view, name="student_clock_in"),
+    path("student/clock-out/", views.student_clock_out_view, name="student_clock_out"),
+]
+
+urlpatterns += [
+    path("student/register/", views.student_register_view, name="student_register"),
 ]

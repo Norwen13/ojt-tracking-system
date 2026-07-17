@@ -1,0 +1,31 @@
+﻿{% extends "placement/base.html" %}
+{% block title %}Student Login - OJT Placement Tracking System{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card mt-5">
+      <div class="card-body p-4">
+        <h3 class="mb-1">OJT Placement Tracking System</h3>
+        <p class="text-muted mb-4">Student Login</p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Student ID</label>
+            {{ form.student_id }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            {{ form.password }}
+          </div>
+          {% if form.non_field_errors %}
+            <div class="text-danger mb-3">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <button type="submit" class="btn btn-dark w-100">Log In</button>
+        </form>
+        <p class="text-muted mt-3 mb-1">New student? <a href="{% url 'student_register' %}">Register here</a></p>
+        <p class="text-muted mb-0"><a href="{% url 'login' %}">School Admin? Log in here</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
