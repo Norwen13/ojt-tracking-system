@@ -12,6 +12,7 @@ from pathlib import Path
 import os
 
 from dotenv import load_dotenv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -73,10 +74,10 @@ SUPABASE_DB_VARS = [
     "SUPABASE_DB_NAME", "SUPABASE_DB_USER", "SUPABASE_DB_PASSWORD", "SUPABASE_DB_HOST",
 ]
 
-if all(os.environ.get(var) for var in SUPABASE_DB_VARS):
+if os.getenv("DATABASE_URL"):
     DATABASES = {
         "default": dj_database_url.config(
-            env="DATABASE_URL",
+            default=os.getenv("DATABASE_URL"),
             conn_max_age=600,
             ssl_require=True,
         )
