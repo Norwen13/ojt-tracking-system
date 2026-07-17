@@ -17,11 +17,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = "django-insecure-change-this-key-before-deploying-anywhere"
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip]
 
 INSTALLED_APPS = [
     # kept for sessions / auth password hashers / static files support only.
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -70,15 +71,11 @@ SUPABASE_DB_VARS = [
 
 if all(os.environ.get(var) for var in SUPABASE_DB_VARS):
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("SUPABASE_DB_NAME"),
-            "USER": os.environ.get("SUPABASE_DB_USER"),
-            "PASSWORD": os.environ.get("SUPABASE_DB_PASSWORD"),
-            "HOST": os.environ.get("SUPABASE_DB_HOST"),
-            "PORT": os.environ.get("SUPABASE_DB_PORT", "5432"),
-            "OPTIONS": {"sslmode": "require"},
-        }
+        "default": dj_database_url.config(
+            env="DATABASE_URL",
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
 else:
     DATABASES = {
@@ -96,6 +93,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "placement" / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -104,3 +102,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ADMIN_SESSION_KEY = "school_admin_id"
 
 LOGIN_URL = "/login/"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
