@@ -9,8 +9,13 @@ default Django Admin Panel.
 """
 
 from pathlib import Path
+import os
+
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = "django-insecure-change-this-key-before-deploying-anywhere"
 
@@ -59,12 +64,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+SUPABASE_DB_VARS = [
+    "SUPABASE_DB_NAME", "SUPABASE_DB_USER", "SUPABASE_DB_PASSWORD", "SUPABASE_DB_HOST",
+]
+
+if all(os.environ.get(var) for var in SUPABASE_DB_VARS):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("SUPABASE_DB_NAME"),
+            "USER": os.environ.get("SUPABASE_DB_USER"),
+            "PASSWORD": os.environ.get("SUPABASE_DB_PASSWORD"),
+            "HOST": os.environ.get("SUPABASE_DB_HOST"),
+            "PORT": os.environ.get("SUPABASE_DB_PORT", "5432"),
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = []
 
