@@ -17,6 +17,9 @@ def admin_login_required(view_func):
         if not request.session.get(settings.ADMIN_SESSION_KEY):
             messages.warning(request, "Please log in to continue.")
             return redirect("login")
+        # Guard against a stale student session lingering in the same
+        # browser session from before this fix (or a shared/switched login).
+        request.session.pop(settings.STUDENT_SESSION_KEY, None)
         return view_func(request, *args, **kwargs)
 
     return _wrapped
@@ -33,6 +36,9 @@ def student_login_required(view_func):
         if not request.session.get(settings.STUDENT_SESSION_KEY):
             messages.warning(request, "Please log in to continue.")
             return redirect("student_login")
+        # Guard against a stale admin session lingering in the same
+        # browser session from before this fix (or a shared/switched login).
+        request.session.pop(settings.ADMIN_SESSION_KEY, None)
         return view_func(request, *args, **kwargs)
 
     return _wrapped

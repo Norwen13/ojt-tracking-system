@@ -44,6 +44,7 @@ def login_view(request):
             admin = None
 
         if admin and admin.check_password(password):
+            request.session.pop(settings.STUDENT_SESSION_KEY, None)
             request.session[settings.ADMIN_SESSION_KEY] = admin.admin_id
             messages.success(request, "Welcome back!")
             return redirect("dashboard")
@@ -520,6 +521,7 @@ def student_login_view(request):
             student = None
 
         if student and student.check_password(password):
+            request.session.pop(settings.ADMIN_SESSION_KEY, None)
             request.session[settings.STUDENT_SESSION_KEY] = student.student_id
             messages.success(request, "Welcome back!")
             return redirect("student_dashboard")
