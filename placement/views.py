@@ -59,18 +59,24 @@ def logout_view(request):
     return redirect("login")
 
 
-@method_decorator(admin_login_required, name="dispatch")
+# --- CHANGED: DashboardView no longer force-redirects everyone to admin login ---
 class DashboardView(View):
     def get(self, request):
-        counts = {
-            "students": Student.objects.count(),
-            "companies": Company.objects.count(),
-            "coordinators": Coordinator.objects.count(),
-            "placements": OJTPlacement.objects.count(),
-            "attendance": Attendance.objects.count(),
-            "admins": SchoolAdmin.objects.count(),
-        }
-        return render(request, "placement/dashboard.html", {"counts": counts})
+        if request.session.get(settings.STUDENT_SESSION_KEY):
+            return redirect("student_dashboard")
+        if request.session.get(settings.ADMIN_SESSION_KEY):
+            counts = {
+                "students": Student.objects.count(),
+                "companies": Company.objects.count(),
+                "coordinators": Coordinator.objects.count(),
+                "placements": OJTPlacement.objects.count(),
+                "attendance": Attendance.objects.count(),
+                "admins": SchoolAdmin.objects.count(),
+            }
+            return render(request, "placement/dashboard.html", {"counts": counts})
+
+        # Nobody logged in: default to the student login, not admin.
+        return redirect("student_login")
 
 
 # ---------------------------------------------------------------------------
@@ -546,8 +552,10 @@ def student_dashboard_view(request):
     today_log = None
     attendance_history = []
     if placement:
-        today_log = Attendance.objects.filter(placement=placement, log_date=today).first()
-        attendance_history = Attendance.objects.filter(placement=placement).order_by("-log_date")
+        today_log = Attendance.objects.filter(
+            placement=placement, log_date=today, time_out__isnull=True
+        ).order_by("-attendance_id").first()
+        attendance_history = Attendance.objects.filter(placement=placement).order_by("-log_date", "-attendance_id")
 
     context = {
         "student": student,
@@ -570,20 +578,22 @@ def student_clock_in_view(request):
         return redirect("student_dashboard")
 
     today = timezone.localdate()
-    log, created = Attendance.objects.get_or_create(
-        placement=placement, log_date=today,
-        defaults={"time_in": timezone.localtime().time(), "status": "Present"},
-    )
-    if not created and log.time_in:
-        messages.warning(request, "You've already clocked in today.")
-    elif not created:
-        log.time_in = timezone.localtime().time()
-        log.status = "Present"
-        log.save()
-        messages.success(request, "Clocked in successfully.")
-    else:
-        messages.success(request, "Clocked in successfully.")
 
+    # Block a new clock-in if there's already an open session (clocked in, not yet out).
+    open_log = Attendance.objects.filter(
+        placement=placement, log_date=today, time_in__isnull=False, time_out__isnull=True
+    ).first()
+    if open_log:
+        messages.warning(request, "You're already clocked in. Clock out first before clocking in again.")
+        return redirect("student_dashboard")
+
+    Attendance.objects.create(
+        placement=placement,
+        log_date=today,
+        time_in=timezone.localtime().time(),
+        status="Present",
+    )
+    messages.success(request, "Clocked in successfully.")
     return redirect("student_dashboard")
 
 
@@ -600,18 +610,12 @@ def student_clock_out_view(request):
         return redirect("student_dashboard")
 
     today = timezone.localdate()
-    try:
-        log = Attendance.objects.get(placement=placement, log_date=today)
-    except Attendance.DoesNotExist:
-        messages.error(request, "You haven't clocked in yet today.")
-        return redirect("student_dashboard")
+    log = Attendance.objects.filter(
+        placement=placement, log_date=today, time_in__isnull=False, time_out__isnull=True
+    ).order_by("-attendance_id").first()
 
-    if not log.time_in:
-        messages.error(request, "You haven't clocked in yet today.")
-        return redirect("student_dashboard")
-
-    if log.time_out:
-        messages.warning(request, "You've already clocked out today.")
+    if not log:
+        messages.error(request, "You haven't clocked in yet.")
         return redirect("student_dashboard")
 
     now_time = timezone.localtime().time()
@@ -636,6 +640,6 @@ def student_register_view(request):
     if request.method == "POST" and form.is_valid():
         student = form.save()
         messages.success(request, f"Account created! Your Student ID is {student.student_id}. Please log in.")
-        return redirect(f"/student/login/?student_id={student.student_id}")
+        return redirect(f"/student?student_id={student.student_id}")
 
     return render(request, "placement/student_register.html", {"form": form})

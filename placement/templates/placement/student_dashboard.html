@@ -10,13 +10,13 @@
     {% if today_log and today_log.time_in and today_log.time_out %}
       <p class="text-success mb-0">Completed for today. Time In: {{ today_log.time_in }}, Time Out: {{ today_log.time_out }}, Rendered Today: {{ today_log.rendered_hours }} hrs.</p>
     {% elif today_log and today_log.time_in %}
-      <p class="mb-3">Clocked in at {{ today_log.time_in }}. Don't forget to clock out at the end of the day.</p>
+      <p class="mb-3">Clocked in at {{ today_log.time_in }}. Don't forget to clock out at the end of your work.</p>
       <form method="post" action="{% url 'student_clock_out' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-dark">Clock Out</button>
       </form>
     {% else %}
-      <p class="mb-3">You haven't clocked in yet today.</p>
+      <p class="mb-3">You haven't clocked in yet.</p>
       <form method="post" action="{% url 'student_clock_in' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-dark">Clock In</button>

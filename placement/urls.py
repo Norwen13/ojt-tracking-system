@@ -3,10 +3,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("login/", views.login_view, name="login"),
+    path("admin/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("", views.DashboardView.as_view(), name="dashboard"),
-
     # School Admin accounts
     path("admins/", views.SchoolAdminListView.as_view(), name="schooladmin_list"),
     path("admins/add/", views.SchoolAdminCreateView.as_view(), name="schooladmin_create"),
@@ -43,13 +42,13 @@ urlpatterns = [
 
 urlpatterns += [
     # Student Portal (self-service)
-    path("student/login/", views.student_login_view, name="student_login"),
-    path("student/logout/", views.student_logout_view, name="student_logout"),
-    path("student/dashboard/", views.student_dashboard_view, name="student_dashboard"),
-    path("student/clock-in/", views.student_clock_in_view, name="student_clock_in"),
-    path("student/clock-out/", views.student_clock_out_view, name="student_clock_out"),
+    path("student/", views.student_login_view, name="student_login"),
+    path("logout/", views.student_logout_view, name="student_logout"),
+    path("dashboard/", views.student_dashboard_view, name="student_dashboard"),
+    path("clock-in/", views.student_clock_in_view, name="student_clock_in"),
+    path("clock-out/", views.student_clock_out_view, name="student_clock_out"),
 ]
 
 urlpatterns += [
-    path("student/register/", views.student_register_view, name="student_register"),
+    path("register/", views.student_register_view, name="student_register"),
 ]
